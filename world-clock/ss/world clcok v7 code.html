@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>World Clock Pro 3.5</title>
+    <style>
+        :root {
+            /* Defaults */
+            --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a; --accent: #0052cc; 
+            --border: #dcdde1; --hand: #333333; --num-color: #57606f;
+            
+            /* Face Pattern Variable (Default: Pure White) */
+            --face-bg: #f8f9fa;
+            --face-border: 3px solid #0052cc;
+            --face-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            --center-dot: #333;
+        }
+
+        /* --- 1. COLOR THEMES (10 Styles) --- */
+        body.t-classic { --bg: #f0f2f5; --card: #fff; --text: #1a1a1a; --accent: #0052cc; --border: #dcdde1; --hand: #333; --num-color: #555; }
+        body.t-dark    { --bg: #121212; --card: #1e1e1e; --text: #fff; --accent: #4dabf7; --border: #333; --hand: #fff; --num-color: #ccc; --face-border: 3px solid #4dabf7; --center-dot: #fff; }
+        body.t-neon    { --bg: #000; --card: #111; --text: #39ff14; --accent: #39ff14; --border: #1a1a1a; --hand: #39ff14; --num-color: #39ff14; --face-border: 3px solid #39ff14; --center-dot: #39ff14; }
+        body.t-luxury  { --bg: #1c1c1c; --card: #2a2a2a; --text: #d4af37; --accent: #d4af37; --border: #444; --hand: #f5f5f5; --num-color: #d4af37; --face-border: 3px solid #d4af37; --center-dot: #d4af37; }
+        body.t-retro   { --bg: #fdf6e3; --card: #eee8d5; --text: #586e75; --accent: #b58900; --border: #d2b48c; --hand: #2c3e50; --num-color: #586e75; --face-border: 3px double #b58900; --center-dot: #b58900; }
+        body.t-ocean   { --bg: #e3f2fd; --card: #fff; --text: #01579b; --accent: #0288d1; --border: #81d4fa; --hand: #01579b; --num-color: #0277bd; --face-border: 3px solid #0288d1; --center-dot: #01579b; }
+        body.t-cyber   { --bg: #1a0b2e; --card: #2d1452; --text: #f0f; --accent: #0ff; --border: #502c7a; --hand: #0ff; --num-color: #0ff; --face-border: 3px solid #f0f; --center-dot: #0ff; }
+        body.t-minimal { --bg: #fff; --card: #fff; --text: #000; --accent: #000; --border: #000; --hand: #000; --num-color: #000; --face-border: 4px solid #000; --face-shadow: none; --center-dot: #000; }
+        body.t-forest  { --bg: #f1f8e9; --card: #fff; --text: #1b5e20; --accent: #388e3c; --border: #a5d6a7; --hand: #1b5e20; --num-color: #2e7d32; --face-border: 3px solid #33691e; --center-dot: #558b2f; }
+        body.t-slate   { --bg: #2f3640; --card: #353b48; --text: #f5f6fa; --accent: #487eb0; --border: #718093; --hand: #f5f6fa; --num-color: #dcdde1; --face-border: 3px solid #718093; --center-dot: #487eb0; }
+
+        /* --- BASE STYLES --- */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--bg); color: var(--text); margin: 0; 
+            display: flex; height: 100dvh; overflow: hidden; 
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .sidebar { 
+            width: 280px; background: rgba(0,0,0,0.05); height: 100%; padding: 20px; box-sizing: border-box; 
+            display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; 
+        }
+        .sidebar-section { margin-bottom: 25px; }
+        .sidebar h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; margin-bottom: 10px; font-weight: 800; }
+
+        #search-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; background: var(--card); color: var(--text); font-size: 16px; }
+        .search-results { max-height: 200px; overflow-y: auto; background: var(--card); border: 1px solid var(--border); border-radius: 6px; margin-top: 5px; display: none; }
+        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 14px; }
+
+        .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .t-btn { padding: 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: bold; background: var(--card); color: var(--text); }
+        .t-btn.active { border: 2px solid var(--accent); background: var(--bg); }
+
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .clock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
+        .card { background: var(--card); border-radius: 24px; padding: 25px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); position: relative; }
+        .rm-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ff4757; cursor: pointer; font-size: 24px; font-weight: bold; padding: 10px; }
+
+        /* CLOCK FACE */
+        .clock { 
+            width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 15px; position: relative; 
+            background: var(--face-bg); 
+            background-size: cover !important; 
+            background-position: center !important;
+            border: var(--face-border); 
+            box-shadow: var(--face-shadow); 
+            transition: all 0.3s;
+        }
+        .clock::after { content: ''; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: var(--center-dot); border-radius: 50%; transform: translate(-50%, -50%); z-index: 4; }
+
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: var(--hand); border-radius: 4px; transform: translateX(-50%); }
+        .h-h { width: 5px; height: 40px; z-index: 3; }
+        .m-h { width: 3px; height: 55px; z-index: 2; }
+        .s-h { width: 1.5px; height: 60px; background: #ff4757; z-index: 1; }
+        
+        .clk-num { position: absolute; font-size: 18px; font-weight: bold; color: var(--num-color); width: 20px; height: 20px; line-height: 20px; text-align: center; }
+        .n-12 { top: 8px; left: 50%; transform: translateX(-50%); }
+        .n-6  { bottom: 8px; left: 50%; transform: translateX(-50%); }
+        .n-3  { right: 8px; top: 50%; transform: translateY(-50%); }
+        .n-9  { left: 8px; top: 50%; transform: translateY(-50%); }
+
+        .digital { font-size: 1.6rem; font-weight: bold; font-family: 'Courier New', monospace; margin: 10px 0 5px; }
+        .date { font-size: 0.9rem; opacity: 0.7; font-weight: 500; }
+        .city { font-weight: bold; font-size: 1.2rem; margin-bottom: 5px; }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 800px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; max-height: 35vh; border-right: none; border-bottom: 1px solid var(--border); padding: 15px; }
+            .main-content { padding: 20px; height: 65vh; }
+            .clock-grid { grid-template-columns: 1fr; }
+            .theme-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+            .t-btn { padding: 8px 2px; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        }
+    </style>
+</head>
+<body id="b" class="t-classic">
+
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 style="display:flex; justify-content:space-between;">🌍 Add Location</h3>
+            <input type="text" id="search-box" placeholder="Search country..." onkeyup="search()">
+            <div id="results" class="search-results"></div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>🎨 1. Color Theme</h3>
+            <div class="theme-grid">
+                <button class="t-btn" onclick="st('t-classic')">Classic</button>
+                <button class="t-btn" onclick="st('t-dark')">Dark</button>
+                <button class="t-btn" onclick="st('t-neon')">Neon</button>
+                <button class="t-btn" onclick="st('t-luxury')">Luxury</button>
+                <button class="t-btn" onclick="st('t-retro')">Retro</button>
+                <button class="t-btn" onclick="st('t-ocean')">Ocean</button>
+                <button class="t-btn" onclick="st('t-cyber')">Cyber</button>
+                <button class="t-btn" onclick="st('t-minimal')">Minimal</button>
+                <button class="t-btn" onclick="st('t-forest')">Forest</button>
+                <button class="t-btn" onclick="st('t-slate')">Slate</button>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>⌚ 2. Clock Face Pattern</h3>
+            <div class="theme-grid">
+                <button class="t-btn" onclick="sf(0)">Default</button>
+                <button class="t-btn" onclick="sf(1)">Carbon</button>
+                <button class="t-btn" onclick="sf(2)">Sunburst</button>
+                <button class="t-btn" onclick="sf(3)">Night Sky</button>
+                <button class="t-btn" onclick="sf(4)">Gold</button>
+                <button class="t-btn" onclick="sf(5)">Pearl</button>
+                <button class="t-btn" onclick="sf(6)">Tech</button>
+                <button class="t-btn" onclick="sf(7)">Wood</button>
+                <button class="t-btn" onclick="sf(8)">Marble</button>
+                <button class="t-btn" onclick="sf(9)">Matrix</button>
+            </div>
+        </div>
+        <p style="font-size: 9px; opacity: 0.5; margin-top: auto;">Auto-Save Enabled (Local Only)</p>
+    </div>
+
+    <div class="main-content">
+        <div class="clock-grid" id="grid">
+            <div class="card" id="local-card">
+                <div class="city">📍 Local Time</div>
+                <div class="clock">
+                    <div class="clk-num n-12">12</div><div class="clk-num n-3">3</div><div class="clk-num n-6">6</div><div class="clk-num n-9">9</div>
+                    <div class="hand h-h" id="lh"></div><div class="hand m-h" id="lm"></div><div class="hand s-h" id="ls"></div>
+                </div>
+                <div class="digital" id="ld">--:--:-- --</div>
+                <div class="date" id="ldt">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // CONFIGURATION: PASTE YOUR NANO BANANA URLS HERE
+        // ----------------------------------------------------
+        const patterns = [
+            'none', // 0. Default (CSS Background)
+            'radial-gradient(circle, #333 0%, #000 100%)', // 1. Carbon Placeholder
+            'conic-gradient(from 0deg, #0984e3, #74b9ff, #0984e3)', // 2. Sunburst Placeholder
+            'radial-gradient(circle, #1a2a6c, #b21f1f, #fdbb2d)', // 3. Night Sky
+            'linear-gradient(45deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)', // 4. Gold
+            'radial-gradient(circle, #fff, #f0f0f0, #e0e0e0)', // 5. Pearl
+            'repeating-linear-gradient(45deg, #000 0, #000 10px, #111 10px, #111 20px)', // 6. Tech
+            'linear-gradient(to right, #6e48aa, #9d50bb)', // 7. Wood Placeholder
+            'radial-gradient(circle at top left, #fdfbfb 0%, #ebedee 100%)', // 8. Marble
+            'linear-gradient(0deg, #000 0%, #0f0 100%)' // 9. Matrix
+        ];
+        
+        // TIP: You can replace the lines above with real Image URLs like:
+        // 'url("https://i.imgur.com/example.png")'
+
+        const countryDB = [{n: "Australia (Sydney)", z: "Australia/Sydney"},{n: "Australia (Adelaide)", z: "Australia/Adelaide"},{n: "China", z: "Asia/Shanghai"},{n: "Japan", z: "Asia/Tokyo"},{n: "UK", z: "Europe/London"},{n: "USA (NY)", z: "America/New_York"},{n: "Taiwan", z: "Asia/Taipei"},{n: "Dubai", z: "Asia/Dubai"}]; // (Simplified list for space)
+        
+        let clocks = [];
+        let currentFace = 0; // Index of current pattern
+
+        function saveSettings() {
+            const data = { theme: document.getElementById('b').className, list: clocks.map(c => ({n: c.name, z: c.zone})), face: currentFace };
+            localStorage.setItem('wcpro_35_data', JSON.stringify(data));
+        }
+
+        // Set Theme (Colors)
+        const st = (t) => { document.getElementById('b').className = t; saveSettings(); }
+
+        // Set Face (Pattern)
+        const sf = (idx) => {
+            currentFace = idx;
+            const styleValue = patterns[idx];
+            
+            // If default (0), remove override to let CSS theme handle it
+            if(idx === 0) {
+                document.documentElement.style.removeProperty('--face-bg');
+            } else {
+                document.documentElement.style.setProperty('--face-bg', styleValue);
+            }
+            saveSettings();
+        }
+
+        function search() {
+            const q = document.getElementById('search-box').value.toLowerCase();
+            const resDiv = document.getElementById('results');
+            if(!q) { resDiv.style.display = 'none'; return; }
+            const filtered = countryDB.filter(c => c.n.toLowerCase().includes(q));
+            resDiv.innerHTML = filtered.map(c => `<div class="search-item" onclick="add('${c.n}', '${c.z}')">${c.n}</div>`).join('');
+            resDiv.style.display = filtered.length ? 'block' : 'none';
+        }
+
+        function add(name, zone, skipSave = false) {
+            if(clocks.some(c => c.name === name)) { if(!skipSave) alert("Exists!"); document.getElementById('results').style.display='none'; return; }
+            if(clocks.length >= 24) return alert("Max 24");
+            const id = 'c' + Date.now() + Math.random().toString(16).slice(2);
+            const div = document.createElement('div');
+            div.className = 'card'; div.id = `card-${id}`;
+            div.innerHTML = `<button class="rm-btn" onclick="rm('${id}')">×</button><div class="city">${name}</div>
+                <div class="clock"><div class="clk-num n-12">12</div><div class="clk-num n-3">3</div><div class="clk-num n-6">6</div><div class="clk-num n-9">9</div>
+                <div class="hand h-h" id="h-${id}"></div><div class="hand m-h" id="m-${id}"></div><div class="hand s-h" id="s-${id}"></div></div>
+                <div class="digital" id="d-${id}">...</div><div class="date" id="dt-${id}">--</div>`;
+            document.getElementById('grid').appendChild(div);
+            clocks.push({ id, zone, name, dom: { h: document.getElementById(`h-${id}`), m: document.getElementById(`m-${id}`), s: document.getElementById(`s-${id}`), d: document.getElementById(`d-${id}`), dt: document.getElementById(`dt-${id}`) } });
+            document.getElementById('search-box').value=''; document.getElementById('results').style.display='none';
+            tick(); if(!skipSave) saveSettings();
+        }
+
+        function rm(id) {
+            clocks = clocks.filter(c => c.id !== id);
+            const card = document.getElementById(`card-${id}`);
+            if(card) card.remove();
+            saveSettings();
+        }
+
+        function tick() {
+            const now = new Date();
+            rotate('l', now);
+            document.getElementById('ld').innerText = now.toLocaleTimeString('en-US', {hour12: true});
+            document.getElementById('ldt').innerText = now.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+            clocks.forEach(c => {
+                const t = new Date(now.toLocaleString('en-US', {timeZone: c.zone}));
+                c.dom.d.innerText = t.toLocaleTimeString('en-US', {hour12: true});
+                c.dom.dt.innerText = t.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+                rotateOther(c.dom, t);
+            });
+        }
+        function rotate(id, date) { setHands(date, (s)=>document.getElementById(id+s)); }
+        function rotateOther(dom, date) { setHands(date, (s)=>dom[s]); }
+        function setHands(d, getEl) {
+            const h=d.getHours(), m=d.getMinutes(), s=d.getSeconds();
+            if(getEl('h')) getEl('h').style.transform=`translateX(-50%) rotate(${(h%12)*30+m*0.5}deg)`;
+            if(getEl('m')) getEl('m').style.transform=`translateX(-50%) rotate(${m*6}deg)`;
+            if(getEl('s')) getEl('s').style.transform=`translateX(-50%) rotate(${s*6}deg)`;
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('wcpro_35_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if(data.theme) document.getElementById('b').className = data.theme;
+                    if(data.face) sf(data.face); // Load Face
+                    if(data.list) data.list.forEach(c => add(c.n, c.z, true));
+                } catch(e) {}
+            }
+        }
+        loadSettings(); setInterval(tick, 1000); tick();
+    </script>
+</body>
+</html>

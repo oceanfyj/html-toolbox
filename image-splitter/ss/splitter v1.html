@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Splitter App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 1.5rem; font-size: 1.5rem; }
+
+        /* Upload Area */
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            padding: 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .upload-box:hover { border-color: var(--primary); background: #eff6ff; }
+        
+        /* Controls */
+        .controls {
+            display: none; /* Hidden until image loaded */
+            margin-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        button {
+            background: var(--surface);
+            border: 1px solid #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        button:hover { background: #f1f5f9; border-color: var(--primary); }
+        button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        button.download-btn {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+        button.download-btn:hover { background: #15803d; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Preview Grid */
+        .preview-container {
+            margin-top: 20px;
+            overflow: hidden;
+            display: inline-block;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+        
+        .grid-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: grid;
+            pointer-events: none;
+            border: 1px solid red; /* Debug */
+        }
+        .grid-cell {
+            border: 1px dashed rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+        }
+
+        img#sourceImage {
+            max-width: 100%;
+            max-height: 500px;
+            display: block;
+        }
+
+        .hidden { display: none; }
+        
+        .status { margin-top: 10px; font-size: 0.9rem; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Image Splitter</h1>
+    
+    <input type="file" id="fileInput" accept="image/*" class="hidden">
+    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+        <p><strong>Click to Upload Photo</strong></p>
+        <p style="font-size:0.9rem; color:#64748b">Supports JPG, PNG, WEBP</p>
+    </div>
+
+    <div id="appControls" class="controls">
+        <h3>How would you like to split it?</h3>
+        
+        <div class="btn-group">
+            <button onclick="setSplit(2, 1)">Half (2)</button>
+            <button onclick="setSplit(2, 2)">4 Even Sections</button>
+            <button onclick="setSplit(3, 2)">6 Even Sections</button>
+            <button onclick="setSplit(4, 2)">8 Even Sections</button>
+            <button onclick="setSplit(5, 2)">10 Even Sections</button>
+        </div>
+
+        <div class="status" id="statusText">Select an option above to preview</div>
+
+        <div class="preview-container" id="previewContainer">
+            <img id="sourceImage" src="" alt="Source">
+            <div id="gridOverlay" class="grid-overlay"></div>
+        </div>
+
+        <br>
+        <button id="downloadBtn" class="download-btn hidden" onclick="processAndDownload()">
+            Download All Images (ZIP)
+        </button>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const sourceImage = document.getElementById('sourceImage');
+    const appControls = document.getElementById('appControls');
+    const gridOverlay = document.getElementById('gridOverlay');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusText = document.getElementById('statusText');
+
+    let currentFile = null;
+    let currentCols = 0;
+    let currentRows = 0;
+
+    // 1. Handle File Upload
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            currentFile = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                sourceImage.src = event.target.result;
+                sourceImage.onload = () => {
+                    appControls.style.display = 'block';
+                    resetState();
+                };
+            }
+            reader.readAsDataURL(currentFile);
+        }
+    });
+
+    function resetState() {
+        gridOverlay.innerHTML = '';
+        downloadBtn.classList.add('hidden');
+        statusText.textContent = "Select an option above to preview";
+        
+        // Remove active class from buttons
+        document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+    }
+
+    // 2. Set Split Configuration
+    window.setSplit = function(cols, rows) {
+        currentCols = cols;
+        currentRows = rows;
+
+        // Highlight active button
+        document.querySelectorAll('.btn-group button').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.textContent.includes(`(${cols * rows})`) || 
+               btn.textContent.includes(`${cols * rows} Even`)) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Update UI
+        statusText.textContent = `Splitting into ${cols} columns x ${rows} rows`;
+        downloadBtn.classList.remove('hidden');
+        drawGridOverlay(cols, rows);
+    }
+
+    // 3. Draw CSS Grid for Visual Preview
+    function drawGridOverlay(cols, rows) {
+        gridOverlay.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        gridOverlay.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        gridOverlay.innerHTML = '';
+
+        for (let i = 0; i < cols * rows; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            gridOverlay.appendChild(cell);
+        }
+    }
+
+    // 4. Process and Download
+    window.processAndDownload = async function() {
+        if (!currentFile || currentCols === 0) return;
+
+        downloadBtn.textContent = "Processing...";
+        downloadBtn.disabled = true;
+
+        const zip = new JSZip();
+        const img = sourceImage;
+        
+        // Calculate dimensions of each piece
+        const pieceWidth = img.naturalWidth / currentCols;
+        const pieceHeight = img.naturalHeight / currentRows;
+
+        const format = currentFile.type; // e.g., image/jpeg
+        const ext = currentFile.name.split('.').pop(); // e.g., jpg
+        const nameBase = currentFile.name.substring(0, currentFile.name.lastIndexOf('.'));
+
+        // Loop through rows and columns to slice
+        let count = 1;
+        for (let r = 0; r < currentRows; r++) {
+            for (let c = 0; c < currentCols; c++) {
+                
+                // Create a temporary canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = pieceWidth;
+                canvas.height = pieceHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Draw specific section
+                ctx.drawImage(
+                    img, 
+                    c * pieceWidth, r * pieceHeight, // Source X, Y
+                    pieceWidth, pieceHeight,         // Source W, H
+                    0, 0,                            // Dest X, Y
+                    pieceWidth, pieceHeight          // Dest W, H
+                );
+
+                // Convert to Blob (High Quality)
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, format, 1.0));
+                
+                // Add to Zip
+                const filename = `${nameBase}_part_${count}.${ext}`;
+                zip.file(filename, blob);
+                count++;
+            }
+        }
+
+        // Generate and Save Zip
+        zip.generateAsync({type:"blob"}).then(function(content) {
+            saveAs(content, `${nameBase}_split.zip`);
+            downloadBtn.textContent = "Download All Images (ZIP)";
+            downloadBtn.disabled = false;
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>放羊的網頁工具箱</title>
+    <style>
+        /* [UPDATE] 基礎重置與字體設定 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* [UPDATE] 工具列表的網格佈局 */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* [UPDATE] 單個工具卡片的樣式 */
+        .tool-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid #3498db;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .tool-card h2 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1.4em;
+        }
+
+        .tool-card p {
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            color: #666;
+            flex-grow: 1; /* 讓文字區塊填滿空間，保持按鈕對齊 */
+        }
+
+        /* [UPDATE] 按鈕樣式 */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* [UPDATE] 待開發區塊的特殊樣式 (灰色) */
+        .tool-card.coming-soon {
+            border-left-color: #95a5a6;
+            background-color: #fdfdfd;
+        }
+        
+        .tool-card.coming-soon .btn {
+            background-color: #95a5a6;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>放羊的網頁工具箱</h1>
+        <p style="margin-top: 10px; opacity: 0.8;">實用的 HTML/JS 個人開發工具集</p>
+    </header>
+
+    <main class="tools-grid">
+        
+        <div class="tool-card">
+            <h2>圖片分割器 (Image Splitter)</h2>
+            <p>快速將圖片分割為網格或特定比例的工具。</p>
+            <a href="#REPLACE_WITH_IMAGE_SPLITTER_URL" class="btn">開啟工具</a>
+        </div>
+
+        <div class="tool-card">
+            <h2>世界時鐘 (World Clock)</h2>
+            <p>即時查看全球主要城市的當前時間。</p>
+            <a href="#REPLACE_WITH_WORLD_CLOCK_URL" class="btn">開啟工具</a>
+        </div>
+
+        <div class="tool-card">
+            <h2>HEIC 轉檔器 (HEIC Converter)</h2>
+            <p>將 iPhone 的 HEIC 格式照片轉換為通用的 JPG 或 PNG。</p>
+            <a href="#REPLACE_WITH_HEIC_CONVERTER_URL" class="btn">開啟工具</a>
+        </div>
+        
+        <div class="tool-card coming-soon">
+            <h2>待開發應用 (App To Be Developed)</h2>
+            <p>更多精彩功能正在開發中，敬請期待。</p>
+            <a href="#" class="btn" onclick="return false;">開發中</a>
+        </div>
+
+    </main>
+
+    <footer style="text-align: center; margin-top: 50px; font-size: 0.8em; color: #888; padding-bottom: 20px;">
+        <p>&copy; 2026 放羊的網頁工具箱 (Shepherd's Web Tools)</p>
+    </footer>
+
+</body>
+</html>
