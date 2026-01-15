@@ -169,22 +169,23 @@
         // "pinMode": 'light' -> White hands (Best for Dark Backgrounds like Vinyl)
         // ----------------------------------------------------
         const patterns = [
+            // [UPDATE] 刪除了重複的 "Default" 項目，修正索引錯位問題
             { name: "Default",    pinMode: "dark",  url: "none" },
-            { name: "Watch",      pinMode: "light", url: "https://oceanfyj.github.io/world-clock/watch.png" },     // Assuming Dark Metallic
-            { name: "Vinyl",      pinMode: "light", url: "https://oceanfyj.github.io/world-clock/vinyl.png" },     // Black Record
-            { name: "Wooden",     pinMode: "light",  url: "https://oceanfyj.github.io/world-clock/wooden.png" },    // Light Wood
-            { name: "Marble",     pinMode: "dark",  url: "https://oceanfyj.github.io/world-clock/marble.png" },    // White Marble
-            { name: "Digital",    pinMode: "light", url: "https://oceanfyj.github.io/world-clock/digital.png" },   // Black Screen
-            { name: "Copper",     pinMode: "dark",  url: "https://oceanfyj.github.io/world-clock/copper.png" },    // Bright Copper
-            { name: "Semi Cond.", pinMode: "light", url: "https://oceanfyj.github.io/world-clock/semi conductor.png" },  // Dark Silicon Green
-            { name: "Chip",       pinMode: "dark", url: "https://oceanfyj.github.io/world-clock/chip.png" }       // Dark Black/Gold
+            { name: "Watch",      pinMode: "light", url: "https://oceanfyj.github.io/html-toolbox/world-clock/watch.png" },       // Assuming Dark Metallic
+            { name: "Vinyl",      pinMode: "light", url: "https://oceanfyj.github.io/html-toolbox/world-clock/vinyl.png" },       // Black Record
+            { name: "Wooden",     pinMode: "light", url: "https://oceanfyj.github.io/html-toolbox/world-clock/wooden.png" },      // Light Wood
+            { name: "Marble",     pinMode: "dark",  url: "https://oceanfyj.github.io/html-toolbox/world-clock/marble.png" },      // White Marble
+            { name: "Digital",    pinMode: "light", url: "https://oceanfyj.github.io/html-toolbox/world-clock/digital.png" },     // Black Screen
+            { name: "Copper",     pinMode: "dark",  url: "https://oceanfyj.github.io/html-toolbox/world-clock/copper.png" },      // Bright Copper
+            { name: "Semi Cond.", pinMode: "light", url: "https://oceanfyj.github.io/html-toolbox/world-clock/semi conductor.png" }, // Dark Silicon Green
+            { name: "Chip",       pinMode: "dark",  url: "https://oceanfyj.github.io/html-toolbox/world-clock/chip.png" }        // Dark Black/Gold
         ];
 
         // ----------------------------------------------------
         // FULL SEARCH DATABASE
         // ----------------------------------------------------
         const countryDB = [
-   {n: "Afghanistan (Kabul)", z: "Asia/Kabul"},
+            {n: "Afghanistan (Kabul)", z: "Asia/Kabul"},
             {n: "Argentina (Buenos Aires)", z: "America/Argentina/Buenos_Aires"},
             {n: "Australia (Sydney)", z: "Australia/Sydney"},
             {n: "Australia (Melbourne)", z: "Australia/Melbourne"},
